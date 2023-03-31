@@ -22,7 +22,6 @@ Dont worry, it will install the required modules it self
   
 # Preview
 ![Image1](/Assets/1.png)
-![Image2](/Assets/2.png)
 ![Image3](/Assets/3.png)
 
 # Credits
