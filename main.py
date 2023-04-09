@@ -18,12 +18,11 @@ if len(needed) != 0:
     count = 0
     for module in needed:
         count += 1
-        print(f"[i] Installing Required Modules... | {count} / {len(needed)}")
+        print(f"[i] Installing Required Modules... ({module}) | {count} / {len(needed)}")
         subprocess.check_call(["pip3", "install", module, "-q"])
 
 import dearpygui.dearpygui as dpg
 import httpx
-import json
 from tkinter import Tk
 from tkinter.filedialog import askopenfile, askdirectory
 
@@ -31,8 +30,8 @@ filepath = os.path.abspath(__file__)
 filename = os.path.basename(__file__)
 folderpath = os.getcwd()
 
-commands = []
-VERSION = "0.1.0"
+commands = [f'--output-root="{folderpath}\CPP2IL Output']
+VERSION = "0.1.2"
 UPDATE_URL = "https://raw.githubusercontent.com/YeetDisDude/Cpp2IL-gui/main/version.txt"
 
 cpp2ilcmds = {
@@ -62,6 +61,23 @@ def check_update():
         dpg.set_value(f"updatetxt", f"Update Status: Cpp2IL Gui version {VERSION} is up to date!")
     
 
+def runanalysisforasm(sender, data):
+    for i, command in enumerate(commands):
+        if command.startswith('--run-analysis-for-assembly='):
+            commands[i] = f'--run-analysis-for-assembly="{data}"'; print(commands)
+            dpg.set_value("cmdslist", commands)
+            return
+    commands.append(f'--run-analysis-for-assembly="{data}"'); print(commands)
+    dpg.set_value("cmdslist", commands)
+
+def addoutputfolder(sender, data):
+    for i, command in enumerate(commands):
+        if command.startswith('--output-root='):
+            commands[i] = f'--output-root="{folderpath}\{data}"'; print(commands)
+            dpg.set_value("cmdslist", commands)
+            return
+    commands.append(f'--output-root="{folderpath}\{data}"'); print(commands)
+    dpg.set_value("cmdslist", commands)
 
 def modify_commands(cmdtype: bool, command: str):
     command = command.strip()
@@ -168,11 +184,6 @@ def suppressattributes():
     print(f"Suppress Attributes: {issuppressattributestag}")
     modify_commands(issuppressattributestag, "--suppress-attributes")
 
-def runanalysisforasm():
-    isrunanalysisforasmtag = dpg.get_value("runanalysisforasmtag")
-    print(f"Run analysis for Assembly: {isrunanalysisforasmtag}")
-    modify_commands(isrunanalysisforasmtag, "--run-analysis-for-assembly")
-
 def throwsafetyoutofwindow():
     isthrowsafetyoutofwindow = dpg.get_value("throwsafetyoutofwindowtag")
     print(f"Throw Safety Out of Window: {isthrowsafetyoutofwindow}")
@@ -234,14 +245,15 @@ def tab1(): # main page
 
         dpg.add_separator()
 
-        dpg.add_slider_int(label="  Analysis Level                     ", width=150, min_value=0, max_value=4, callback=analysislevel, tag="analysisleveltag", default_value=-1) # --analysis-level
+        dpg.add_slider_int(label="  Analysis Level                     ", width=200, min_value=0, max_value=4, callback=analysislevel, tag="analysisleveltag", default_value=-1) # --analysis-level
+        dpg.add_input_text(label="  Run  Analysis  for  Assembly         ", tag="runanalysisforasmtag", callback=runanalysisforasm, width=200, hint="Dont put .dll at the end") # --run-analysis-for-assembly
+        dpg.add_input_text(label="  Output Folder Name [will be created for you]", tag="outputfoldertag", callback=addoutputfolder, width=200, default_value="CPP2IL Output")
         dpg.add_checkbox(label="  Skip  Analysis                       ", tag="skipanalysistag", callback=skipanalysis) # --skip-analysis
         dpg.add_checkbox(label="  Skip  Metadata  Texts                ", tag="skipmetadatatxtstag", callback=skipmetadatatxts) # --skip-metadata-txts
         dpg.add_checkbox(label="  Disable  Registration  Prompts       ", tag="disableregpromptstag", callback=disableregprompts) # --disable-registration-prompts
         dpg.add_checkbox(label="  Verbose [Recommended]                ", tag="verbosetag", callback=verbose) # --verbose
         dpg.add_checkbox(label="  IL  to  Assembly  ( Experimental )   ", tag="iltoasmtag", callback=iltoasm) # --experimental-enable-il-to-assembly-please
         dpg.add_checkbox(label="  Suppress  Attributes                 ", tag="suppressattributestag", callback=suppressattributes) # --suppress-attributes
-        dpg.add_checkbox(label="  Run  Analysis  for  Assembly         ", tag="runanalysisforasmtag", callback=runanalysisforasm) # --run-analysis-for-assembly
         dpg.add_checkbox(label="  Throw  Safety  Out  of  Window       ", tag="throwsafetyoutofwindowtag", callback=throwsafetyoutofwindow) # --throw-safety-out-the-window	
         dpg.add_checkbox(label="  Analyze  All                         ", tag="analyzealltag", callback=analyzeall) # --analyze-all	
         dpg.add_checkbox(label="  Skip  Method  Dumps                  ", tag="skipmethoddumpstag", callback=skipmethoddumps) # --skip-method-dumps
@@ -306,7 +318,7 @@ dpg.set_viewport_resizable(False)
 with dpg.font_registry():
     default_font = dpg.add_font("Assets/SF Pro Display Semibold.ttf", 20)
 
-with dpg.window(width=imguiW, height=imguiH, no_resize=True, label=f"Cpp2IL Gui | Made by: YeetDisDude#0001 | Version {VERSION}") as window:
+with dpg.window(width=imguiW, height=imguiH, no_resize=True, label=f"Cpp2IL Gui | Made by: YeetDisDude#0001 | Version {VERSION}", no_collapse=True, no_move=True) as window:
     with dpg.tab_bar():
         with dpg.tab(label="     Cpp2IL     "):
             tab1()
